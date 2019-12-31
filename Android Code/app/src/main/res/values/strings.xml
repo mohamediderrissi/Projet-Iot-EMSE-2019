@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Hue Controller</string>
+    <string name="enter_room">Enter Room #</string>
+    <string name="light">Light Level: </string>
+    <string name="noise">Noise Level: </string>
+    <string name="ok">Check</string>
+    <string name="lightonoff">light on/off</string>
+    <string name="ringonoff">ringer on/off</string>
+    <string name="image_content_description"> Desc !</string>
+</resources>
