@@ -1,13 +1,36 @@
 <template>
   <div class="buildingComponent">
-    <!-- <div class="modal">
-  <div class="modal-background"></div>
-  <div class="modal-content">
-    
-  </div>
-  <button class="modal-close is-large" aria-label="close"></button>
-</div> -->
+    <b-modal
+      class="videoModal"
+      :active.sync="activateLogin"
+      scroll="keep"
+      :width="640"
+      :can-cancel="false"
+    >
+      <b-message
+        title="Authentication !"
+        type="is-danger"
+        has-icon
+        :active="!isLoggedMessage"
+        aria-close-label="Close message"
+      >
+        You Not are Logged in !
+      </b-message>
+      <video id="video" width="430px" height="350px" ref="videoRef"></video>
+
+      <!-- <b-button @click="activateLogin = false">coucou</b-button> -->
+    </b-modal>
     <section class="section">
+      <b-message
+        auto-close
+        title="You are a logged in !"
+        type="is-success"
+        has-icon
+        :active.sync="isLoggedMessage"
+        aria-close-label="Close message"
+      >
+        You are Logged in !
+      </b-message>
       <div class="container" ref="element">
         <div
           @mouseover="mouseOver('on', $event)"
@@ -114,12 +137,13 @@
       </div>
     </section>
   </div>
+  
 </template>
 
 <script>
 // import cbor from "cbor";
 // import assert from "assert";
-
+import ml5 from "ml5";
 export default {
   data() {
     return {
@@ -131,7 +155,12 @@ export default {
       roomId: "",
       floor: "",
       isAddBoxHidden: false,
-      ErrorMessage: "Please refresh the page, Something happened uncorrectly! "
+      ErrorMessage: "Please refresh the page, Something happened uncorrectly! ",
+      activateLogin: false,
+      videoReady: false,
+      user: "",
+      isLoggedMessage: false,
+      model: null
     };
   },
   methods: {
@@ -236,14 +265,37 @@ export default {
       } else if (action === "off") {
         e.currentTarget.firstChild.children[1].style = "visibility:hidden;";
       }
+    },
+    guess(classifier) {
+      classifier.classify(document.getElementById("video"), (err, results) => {
+        if (err) console.log(err);
+        if (results[0].confidence > 0.9) {
+          this.user = results[0].label;
+          if (this.user === "Abdelhamid") {
+            this.activateLogin = false;
+            localStorage.setItem("isLoggedIn", "true");
+            this.isLoggedMessage = true;
+          }
+          console.log("result: ", this.user);
+        }
+        this.guess(classifier);
+      });
     }
+    // videoReady() {
+    //   this.classifier.load("./model.json", () => {
+    //     console.log("loaded !");
+    //     // this.classifier.classify((err, res) => {
+    //     //   console.log(res);
+    //     // });
+    //   });
+    // }
   },
   async created() {
     try {
       var res = await fetch(`${this.API_URL}/rooms`);
       if (res.status == 200 || res.status == 201) {
         var data = await res.json();
-        console.table(data);
+        // console.table(data);
         this.rooms = data;
       } else {
         throw Error;
@@ -255,10 +307,96 @@ export default {
       });
       console.error(error);
     }
+
     // this.rooms.forEach(room => {
 
     // });
+  },
+  mounted() {
+    console.log("mounted");
+
+    let isLoggedIn = localStorage.getItem("isLoggedIn");
+    if (isLoggedIn && isLoggedIn == "true") {
+      console.log("logged in", isLoggedIn);
+      // this.isLoggedMessage = true;
+    } else {
+      console.log("not logged in or no local key found", isLoggedIn);
+      // this.$buefy.snackbar.open({
+      //   message: "You should Log in before accessing to this page !",
+      //   type: "is-danger",
+      //   position: "is-bottom",
+      //   duration: 10000
+      // });
+      setTimeout(() => {
+        this.activateLogin = true;
+      }, 100);
+    }
+
+    setTimeout(() => {
+      if (this.$refs.videoRef) {
+        this.videoReady = true;
+        console.log(this.$refs.videoRef);
+      }
+    }, 500);
+
+    setTimeout(() => {
+      if (this.videoReady && this.activateLogin) {
+        navigator.mediaDevices
+          .getUserMedia({ video: true })
+          .then(stream => {
+            // let video = this.$refs.videoRef;
+            video.srcObject = stream;
+            video.play();
+          })
+          .then(() => {
+            // let isThereModel = localStorage.getItem("isThereModel");
+            // if (isThereModel && isThereModel == "false") {
+            //   const URL =
+            //     "https://teachablemachine.withgoogle.com/models/of9bynZQ/model.json";
+            //   const classifier = ml5.imageClassifier(URL, video, () => {
+            //     console.log("model loaded !");
+            //     this.model = classifier;
+            //   });
+            // } else if (isThereModel && isThereModel == "true") {
+            //   console.log("it iss true");
+
+            //   const featureExtractor = ml5.featureExtractor(
+            //     "MobileNet",
+            //     {
+            //       epochs: 50
+            //     },
+            //     this.modelLoaded
+            //   );
+            //   // Create a new classifier using those features
+            //   const classifier = featureExtractor.classification(video, () => {
+            //     console.log("classier here");
+            //   });
+
+            //   setTimeout(() => {
+            //     classifier.load("../assets/model.json", () => {
+            //       console.log("loaded !");
+            //     });
+            //   }, 4000);
+            // }
+            const URL = 'https://teachablemachine.withgoogle.com/models/XLqbjQq-/model.json'
+           //   "https://teachablemachine.withgoogle.com/models/of9bynZQ/model.json";
+            const classifier = ml5.imageClassifier(URL, video, () => {
+              console.log("model loaded !");
+              this.model = classifier;
+            });
+            // console.log(classifier);
+            if (this.activateLogin) {
+              this.guess(classifier);
+            } else {
+              console.log("Logged in !");
+            }
+          });
+      } else {
+        console.log("video not ready !");
+      }
+    }, 2000);
   }
+
   // async mounted() {
   //   var encoded = cbor.encode(JSON.stringify({"id":-1,"status":"ON"}));
   //   console.log(encoded);
@@ -320,5 +458,10 @@ figure.image img {
 }
 .AddBoxHidden {
   display: none;
+}
+
+video {
+  margin-left: 100px;
+  border: dashed 2px #f4f4f4;
 }
 </style>
