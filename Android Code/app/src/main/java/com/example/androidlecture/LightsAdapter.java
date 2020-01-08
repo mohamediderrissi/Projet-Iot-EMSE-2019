@@ -168,9 +168,10 @@ public class LightsAdapter extends
 
     }
 
-    public void redirect(View view, int position) {
+ /*   public void redirect(View view, int position) {
         Intent intent = new Intent(view.getContext(), ContextManagementActivity.class);
         intent.putExtra("position", position);
         view.getContext().startActivity(intent);
     }
+  */
 }

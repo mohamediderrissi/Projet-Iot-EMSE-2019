@@ -97,16 +97,7 @@ public class LightActivity extends AppCompatActivity {
                 });
 
         queue.add(contextRequest);
-//        System.out.println(rooms);
-//        return rooms;
     }
 
 
-    public void redirect(View view) {
-        Intent intent = new Intent(this, ContextManagementActivity.class);
-//        EditText editText = (EditText) findViewById(R.id.editText);
-//        String message = editText.getText().toString();
-//        intent.putExtra(EXTRA_MESSAGE, message);
-        startActivity(intent);
-    }
 }
