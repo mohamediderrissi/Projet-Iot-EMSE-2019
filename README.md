@@ -1,4 +1,7 @@
-# Projet-Iot-EMSE-2019 (School project)
+# Projet-Iot-EMSE-2019 (School project) 
+
+- Check out the website (https://iot-vue.alaouiib.now.sh/) in order to controll the phillips hue LEDs using the web interface.
+- In order to bypass the authentication, please add this code to the console `localStorage.setItem("isLoggedIn","true")`
 
 ## Objective
 The main objective of the project is to integrate what we have done during the three courses in one project.
